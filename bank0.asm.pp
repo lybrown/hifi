@@ -134,13 +134,13 @@ null
     rts
 
 dlist
-    :6 dta $70
+    :4 dta $70
     dta $42,a(scr)
     :6 dta $2
     dta $70
-    :2 dta $2
+    :4 dta $2
     dta $70
-    :3 dta $2
+    :4 dta $2
     dta $70
     :1 dta $2
     dta $41,a(dlist)
@@ -155,9 +155,12 @@ scr
     dta d'       applied to this signal.          '
 
     dta d'         Idea: kool kitty89             '
-    dta d'            Code: Xuel                  '
+    dta d'             Code: Xuel                 '
+    dta d'         Music: DemoVibes 11            '
+    dta d'   http://demovibes.org/demovibes-11/   '
 
-    dta d'    http://atariage.com/forums/topic/   '
+    dta d'          AtariAge Thread:              '
+    dta d'   http://atariage.com/forums/topic/    '
     dta d'      244946-using-pulse-density-       '
     dta d'       modulation-for-8-bit-pcm/        '
 
