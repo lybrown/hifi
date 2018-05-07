@@ -39,9 +39,9 @@ KHZ15 equ 1<<0
 play
     ldx waveform ; 4 cycles
     lda hi,x ; 4 cycles
-    ldy lo,x ; 4 cycles
     sta AUDC2 ; 4 cycles
-    sty AUDC1 ; 4 cycles
+    lda lo,x ; 4 cycles
+    sta AUDC1 ; 4 cycles
     ;sty $FF00 ; 4 cycles
     inc play+1 ; 6 cycles
 branch
