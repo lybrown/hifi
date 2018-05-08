@@ -2,9 +2,9 @@
     ;========================================================
     org $2000
 sine
-    dta sin(127,128,256,0,255)
+    dta sin(127,127,256,0,255)
 sinelo
-    dta sin(127,8,64,0,255)
+    dta sin(135,7,64,0,255)
 triangle
     :256 dta #
 trianglelo
@@ -46,6 +46,12 @@ KHZ15 equ 1<<0
     mva #0 AUDF2
     mva #0 AUDF4
 
+    ; Set up 1/16 dutycycle HiPass on 1+3
+    mvx optpulsex AUDF1
+    mva optpulsey AUDF3
+    sta STIMER
+    stx AUDF3
+
     lda optenablelo
     ldx #{sta a:}
     and #1
@@ -69,12 +75,6 @@ KHZ15 equ 1<<0
     and #1
     bne play44
     jmp play15
-
-    ; Set up 1/16 dutycycle HiPass on 1+3
-    mvx optpulsex AUDF1
-    mva optpulsey AUDF3
-    sta STIMER
-    stx AUDF3
 
 play44
     ldx sine,y ; 4 cycles
