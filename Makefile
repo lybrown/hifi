@@ -1,3 +1,5 @@
+calibrate.run:
+
 thecart.playcart:
 
 pdm.run:
@@ -10,12 +12,17 @@ pdm.obx: waveform.bin
 thecart.car: bank0.bin waveform.bin makecart.pl
 	./makecart.pl $^ $(out)
 
-waveform.bin: Demovibes11.raw
+#waveform.bin: Demovibes11.raw
+waveform.bin: Aha.raw
 	cp $< $@
 
 	# -D -- don't dither
 %.raw: %.mp3
-	sox -v 1.5 $< -e unsigned-integer -b 8 -r$(rate) -D -t raw $@ remix - trim 565.75 600
+	#sox -v 1.5 $< -e unsigned-integer -b 8 -r$(rate) -D -t raw $@ remix - trim 565.75 600
+	#sox -v 1.5 $< -e unsigned-integer -b 8 -r$(rate) -D -t raw $@ remix - trim 50 36
+	#sox -v 1.5 $< -e unsigned-integer -b 8 -r$(rate) -D -t raw $@ remix - trim 1 40
+	#sox -v 1.5 $< -e unsigned-integer -b 8 -r$(rate) -t raw $@ remix - trim 1 240 dither -f lipshitz -S -s
+	sox -v 1.5 $< -e unsigned-integer -b 8 -r$(rate) -t raw $@ remix - trim 1 240 dither -s
 %.wav: %.mp3
 	sox -v 1.5 $< -e unsigned-integer -b 8 -r$(rate) -D -t wav $@ remix - trim 0 600
 
