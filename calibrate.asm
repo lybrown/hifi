@@ -5,9 +5,9 @@ sine
     dta sin(127,127,256,0,255)
 sinelo
     dta sin(135,7,64,0,255)
-triangle
+sawtooth
     :256 dta #
-trianglelo
+sawtoothlo
     :256 dta 128+#&$F
 lo
     ert <*!=0
@@ -236,8 +236,8 @@ scr
     ;     0123456789012345678901234567890123456789
     dta d'   1. Sine Wave                         '
     dta d'   2. Sine Wave at 1/16 volume          '
-    dta d'   3. Triangle Wave                     '
-    dta d'   4. Triangle Wave at 1/16 volume      '
+    dta d'   3. Sawtooth Wave                     '
+    dta d'   4. Sawtooth Wave at 1/16 volume      '
 scrlsb
     dta d'   5. Toggle LSB                        '
 scrmsb
