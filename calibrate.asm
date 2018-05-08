@@ -80,7 +80,7 @@ play44
     ldx sine,y ; 4 cycles
     lda hi,x ; 4 cycles
 sthi44
-    sta AUDC4 ; 4 cycles
+    sta AUDC3 ; 4 cycles
     lda lo,x ; 4 cycles
 stlo44
     sta AUDC1 ; 4 cycles
@@ -102,7 +102,7 @@ play15
     lda hi,x
     sta WSYNC
 sthi15
-    sta AUDC4 ; 8 cycles
+    sta AUDC3 ; 8 cycles
     lda lo,x
 stlo15
     sta AUDC1 ; 8 cycles
@@ -122,7 +122,8 @@ menu
     sta DMACTL
     sta AUDCTL
     sta HPOSP0
-    :8 sta AUDC1
+    ldx #7
+    sta:rpl AUDF1,x-
     mwa #dlist DLISTL
     mva #0 COLPF2
     mva #15 COLPF1
@@ -204,7 +205,7 @@ null
     rts
 
 lastkeydown
-    dta 0
+    dta 1
 optfreq
     dta 1
 optwaveform

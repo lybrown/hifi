@@ -36,12 +36,9 @@ HI13 equ 1<<2
 KHZ15 equ 1<<0
     mva #[FAST1|FAST3|HI13] AUDCTL
     ;mva #[HI13|KHZ15] AUDCTL
-    mva #$AF AUDC1
-    mva #$10 AUDC2
-    mva #$A0 AUDC3
-    mva #$10 AUDC4
-    mva #0 AUDF2
-    mva #0 AUDF4
+    lda #0
+    ldx #7
+    sta:rpl AUDF1,x-
 
     ; Set up 1/16 dutycycle HiPass on 1+3
     mvx #12 AUDF1
@@ -60,7 +57,7 @@ play
     ; pages 0-30
 >>> for $page (0 .. 30) {
     ldx $A000+<<<$page>>>*$100,y ; 4 cycles
-    mva hi,x AUDC2 ; 8 cycles
+    mva hi,x AUDC3 ; 8 cycles
     mva lo,x AUDC1 ; 8 cycles
     ;mva lo,x $F000 ; 8 cycles
     ; 20 cycles
@@ -72,7 +69,7 @@ play
 >>> }
     ; page 31
     ldx $A000+31*$100,y ; 4 cycles
-    mva hi,x AUDC2 ; 8 cycles
+    mva hi,x AUDC3 ; 8 cycles
     mva lo,x AUDC1 ; 8 cycles
     ;mva lo,x $F000 ; 8 cycles
     :2 and (dummyz),y ; 5+5 cycles NOP
