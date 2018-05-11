@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 use File::Slurp;
+use Getopt::Long;
+
+my %args = (maxmem => 1<<20);
 
 sub slurp {
     return read_file($_[0], binmode => ':raw');
@@ -28,13 +31,15 @@ sub slurp {
 sub music {
     my ($data) = @_;
     my $music = '';
+    my $chunksize = $args{ram} ? 16384 : 8192;
+    my $bankcount = $args{ram} ? 64 : 32;
     # Swizzle
     while ($data) {
-        my @data = split //, substr $data, 0, 8192, "";
+        my @data = split //, substr $data, 0, $chunksize, "";
         my @music;
-        for (my $i = 0; $i < 32; ++$i) {
+        for (my $i = 0; $i < $bankcount; ++$i) {
             for (my $j = 0; $j < 256; ++$j) {
-                $music[$i*256+$j] = $data[$j*32+$i] // 0;
+                $music[$i*256+$j] = $data[$j*$bankcount+$i] // 0;
             }
         }
         $music .= join "", @music;
@@ -42,8 +47,11 @@ sub music {
     return $music;
 }
 
-sub main {
-    $ARGV[1] or die "Usage: makecart bank0.bin data.bin\n";
+sub usage {
+    die "Usage: makecart [bank0.bin data.bin] [-ram player.obx data.bin]\n";
+}
+
+sub cart {
     my $bank0 = slurp $ARGV[0];
     my $data = slurp $ARGV[1];
     $data = music($data);
@@ -73,6 +81,33 @@ sub main {
     print $data;
     # Altirra is OK with short .CAR
     #print "\0" for 0 .. ($size * (1<<20)) - $len;
+}
+
+sub ram {
+    my $obx = slurp $ARGV[0];
+    my $data = slurp $ARGV[1];
+    $data = music($data);
+    $data = substr $data, 0, $args{maxmem} if length $data > $args{maxmem};
+    print $obx;
+    while ($data) {
+        my $chunk = substr $data, 0, 16384, "";
+        print pack "vvv", 0x2E2, 0x2E3, 0x3000;
+        print pack "vv", 0x4000, 0x7FFF;
+        print $chunk;
+    }
+}
+
+sub main {
+    GetOptions(\%args,
+        "ram!",
+        "maxmem=i",
+    ) or usage();
+    $ARGV[1] or usage();
+    if ($args{ram}) {
+        ram();
+    } else {
+        cart();
+    }
 }
 
 main();

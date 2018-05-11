@@ -1,7 +1,5 @@
     icl 'hardware.asm'
-    opt f+h-
-    ;========================================================
-    org $A000
+    org $2000
 code
     org r:$2000
 lo
@@ -10,6 +8,10 @@ lo
 hi
     ert <*!=0
     :256 dta $10|[#>>4]
+banks
+    :256 dta [[#&3]<<2]|[[[~#]&4]>>1]|[[[#^$18]&$38]<<2]|1
+bankindex
+    dta 0
 main
     ; disable interrupts, ANTIC, POKEY
     sei
@@ -40,23 +42,22 @@ KHZ15 equ 1<<0
     ldx #7
     sta:rpl AUDF1,x-
 
-    ; Set up 1/16 dutycycle HiPass on 1+3
-    mvx #12 AUDF1
-    mva #13 AUDF3
-    sta STIMER
-    stx AUDF3
-
     ; init bank
-    mwa #1 $D5A0
-    ldy #0
+    mwa #0 bankindex
 
 dummyz equ 0
     mwa #0 dummyz
 
+laststart equ $82
+    sta laststart
+
+    jsr setpulse
+
+    ldy #0
 play
-    ; pages 0-30
->>> for $page (0 .. 30) {
-    ldx $A000+<<<$page>>>*$100,y ; 4 cycles
+    ; pages 0-61
+>>> for $page (0 .. 61) {
+    ldx $4000+<<<$page>>>*$100,y ; 4 cycles
     mva hi,x AUDC3 ; 8 cycles
     mva lo,x AUDC1 ; 8 cycles
     ;mva lo,x $F000 ; 8 cycles
@@ -67,8 +68,21 @@ play
     and (dummyz),y ; 5 cycles NOP
     nop ; 2 cycles NOP
 >>> }
-    ; page 31
-    ldx $A000+31*$100,y ; 4 cycles
+    ; page 62
+    ldx $4000+62*$100,y ; 4 cycles
+    mva hi,x AUDC3 ; 8 cycles
+    mva lo,x AUDC1 ; 8 cycles
+    ;mva lo,x $F000 ; 8 cycles
+    ; 20 cycles
+    ; Pad to 37 cycles by adding 17 cycles of nop:
+    lda CONSOL ; 4 cycles
+    and #1 ; 2 cycles
+    cmp:sta laststart ; 5 cycles
+    bcc toggle ; 2 cycles
+    lda $FF00,x ; 4 cycles NOP
+    ; page 63
+page63
+    ldx $4000+63*$100,y ; 4 cycles
     mva hi,x AUDC3 ; 8 cycles
     mva lo,x AUDC1 ; 8 cycles
     ;mva lo,x $F000 ; 8 cycles
@@ -80,14 +94,42 @@ branch
 next
     ; ert [>next]!=[>branch]
 
-    ; Go to next cart bank
-    inc $D5A0 ; 6 cycles
-    sne:inc $D5A1 ; 3-8 cycles
+    ; Go to next RAM bank
+setbank
+    mva banks PORTB ; 8 cycles
+    inc setbank+1 ; 6 cycles
     jmp play ; 3 cycles
 codeend
 
-    ;========================================================
-    org $B000
+toggle
+    jsr setpulse
+    jmp page63
+
+setpulse
+    ; Set up 1/16 dutycycle HiPass on 1+3
+    ldx pindex
+    mva paudf3,x AUDF3
+    mva paudf1,x AUDF1
+    sta STIMER
+    sta AUDF3
+    lda #1
+    eor:sta pindex
+    beq altirra
+    mva #$0 COLBK
+    mva #$F COLPM0
+    rts
+altirra
+    mva #$F COLBK
+    mva #$0 COLPM0
+    rts
+pindex
+    dta 0
+paudf1
+    dta 12,3
+paudf3
+    dta 13,5
+
+
 start
     ; disable interrupts, ANTIC, POKEY
     sei
@@ -99,18 +141,6 @@ start
     mva #15 COLPF1
     lda:rne VCOUNT
     mva #$22 DMACTL
-
-    ; copy code
-    mwa #code $80
-    mwa #$2000 $82
-    ldx #[[codeend-code]>>8]+1
-    ldy #0
-copy
-    mva:rne ($80),y ($82),y+
-    inc $81
-    inc $83
-    dex
-    bne copy
 
 wait
     lda SKSTAT
@@ -145,7 +175,7 @@ scr
     ;     0123456789012345678901234567890123456789
     dta d'  This is a demo of playing samples at  '
     dta d'    44270Hz with 8-bits of precision.   '
-    dta d' Channel 2 plays the top 4-bits as PCM. '
+    dta d' Channel 3 plays the top 4-bits as PCM. '
     dta d'   Channel 1+3 are running at 1.78Mhz   '
     dta d' and use HiPass to produce a 1/16 pulse '
     dta d'   at 111Khz. The bottom 4-bits are     '
@@ -153,8 +183,8 @@ scr
 
     dta d'         Idea: kool kitty89             '
     dta d'             Code: Xuel                 '
-    dta d'         Music: DemoVibes 11            '
-    dta d'   http://demovibes.org/demovibes-11/   '
+    dta d'    Music: elektric_funk.mod - Moby     '
+    dta d'                                        '
 
     dta d'          AtariAge Thread:              '
     dta d'   http://atariage.com/forums/topic/    '
@@ -163,9 +193,12 @@ scr
 
     dta d'           Press any key                '
 
-    ;========================================================
-    org $BFFA
-    dta a(start) ; start
-    dta 0 ; no left cart
-    dta 4 ; no DOS
-    dta a(null) ; init
+    org $3000
+nextbank
+    ldx bankindex
+    mva banks,x PORTB
+    inx
+    stx bankindex
+    rts
+
+    run start
